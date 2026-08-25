@@ -22,7 +22,13 @@ async function api(u,o={}){o.headers={"Content-Type":"application/json",...(o.he
 async function login(){try{let d=await api("/api/login",{method:"POST",body:JSON.stringify({email:email.value,password:password.value})});token=d.token;localStorage.setItem("dlt_token",token);start()}catch(e){msg.textContent=e.message}}
 function registerForm(){msg.innerHTML='<input id="rname" placeholder="Seu nome"><button class="btn" onclick="register()">Criar conta</button>'}
 async function register(){try{let d=await api("/api/register",{method:"POST",body:JSON.stringify({name:rname.value,email:email.value,password:password.value})});token=d.token;localStorage.setItem("dlt_token",token);start()}catch(e){msg.textContent=e.message}}
-async function start(){login.style.display="none";app.style.display="block";let u=await api("/api/me");who.textContent=u.name;refresh()}
+async function start(){
+  document.getElementById("login").style.display="none";
+  document.getElementById("app").style.display="block";
+  let u=await api("/api/me");
+  document.getElementById("who").textContent=u.name;
+  refresh();
+}
 async function refresh(){let d=await api("/api/dashboard");salesTotal.textContent=brl(d.sales);receive.textContent=brl(d.receive);overdue.textContent=brl(d.overdue);balance.textContent=brl(d.balance);rs.textContent=brl(d.sales);rr.textContent=brl(d.receive);ro.textContent=brl(d.overdue);alerts.textContent=d.overdue?`Há ${brl(d.overdue)} em contas vencidas.`:"Nenhum alerta.";recent.innerHTML=d.recent.length?'<table><tr><th>Cliente</th><th>Valor</th><th>Status</th></tr>'+d.recent.map(x=>`<tr><td>${x.customer||"Venda balcão"}</td><td>${brl(x.total)}</td><td><span class="badge ${x.status==="paid"?"":"red"}">${x.status==="paid"?"Pago":"Pendente"}</span></td></tr>`).join("")+"</table>":"Nenhuma venda.";let cs=await api("/api/customers"),ps=await api("/api/products");scustomer.innerHTML='<option value="">Cliente (opcional)</option>'+cs.map(c=>`<option value="${c.id}">${c.name}</option>`).join("");clist.innerHTML='<table><tr><th>Nome</th><th>WhatsApp</th></tr>'+cs.map(c=>`<tr><td>${c.name}</td><td>${c.phone||"-"}</td></tr>`).join("")+"</table>";plist.innerHTML='<table><tr><th>Produto</th><th>Preço</th><th>Estoque</th></tr>'+ps.map(p=>`<tr><td>${p.name}</td><td>${brl(p.price)}</td><td>${p.stock}</td></tr>`).join("")+"</table>";rlist.innerHTML=d.receive?`Total pendente: <b>${brl(d.receive)}</b><br><br>Contas vencidas: <b>${brl(d.overdue)}</b>`:"Nenhuma conta pendente."}
 async function addCustomer(){await api("/api/customers",{method:"POST",body:JSON.stringify({name:cname.value,phone:cphone.value})});cname.value="";cphone.value="";refresh()}
 async function addProduct(){await api("/api/products",{method:"POST",body:JSON.stringify({name:pname.value,price:pprice.value,stock:pstock.value})});pname.value="";pprice.value="";pstock.value="";refresh()}
